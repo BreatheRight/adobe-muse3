@@ -60,8 +60,14 @@ export default function EditorPage() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [isSfxPanelOpen, setIsSfxPanelOpen] = useState(false)
-  const [sfxPrompt, setSfxPrompt] = useState("Add sound to this clip")
+  const [sfxPrompt, setSfxPrompt] = useState("")
   const panelRef = useRef<HTMLDivElement>(null)
+  const [videoTrackHeight, setVideoTrackHeight] = useState(80); // Default 80px (was h-20)
+  const [audioTrackHeight, setAudioTrackHeight] = useState(48); // Default 48px (was h-12)
+  const [isResizingVideo, setIsResizingVideo] = useState(false);
+  const [isResizingAudio, setIsResizingAudio] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [startHeight, setStartHeight] = useState(0);
 
   // Sync video/audio currentTime when state changes
   useEffect(() => {
@@ -143,6 +149,52 @@ export default function EditorPage() {
     }
   }, [isSfxPanelOpen])
 
+  // Handle resize start for video track
+  const handleVideoResizeStart = (e: React.MouseEvent) => {
+    setIsResizingVideo(true);
+    setStartY(e.clientY);
+    setStartHeight(videoTrackHeight);
+    e.preventDefault();
+  };
+  
+  // Handle resize start for audio track
+  const handleAudioResizeStart = (e: React.MouseEvent) => {
+    setIsResizingAudio(true);
+    setStartY(e.clientY);
+    setStartHeight(audioTrackHeight);
+    e.preventDefault();
+  };
+  
+  // Handle mouse move while resizing
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isResizingVideo) {
+        const diff = e.clientY - startY;
+        const newHeight = Math.max(40, startHeight + diff); // Minimum 40px height
+        setVideoTrackHeight(newHeight);
+      } else if (isResizingAudio) {
+        const diff = e.clientY - startY;
+        const newHeight = Math.max(30, startHeight + diff); // Minimum 30px height
+        setAudioTrackHeight(newHeight);
+      }
+    };
+    
+    const handleMouseUp = () => {
+      setIsResizingVideo(false);
+      setIsResizingAudio(false);
+    };
+    
+    if (isResizingVideo || isResizingAudio) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizingVideo, isResizingAudio, startY, startHeight]);
+
   return (
     <div className="flex flex-col h-screen bg-[#1a1a1a] text-white">
       {/* Main content area */}
@@ -169,7 +221,7 @@ export default function EditorPage() {
           </div>
 
           {/* Timeline and controls */}
-          <div className="h-64 bg-[#232323] border-t border-[#333333]">
+          <div className="bg-[#232323] border-t border-[#333333] flex flex-col">
             {/* Playback time and scrubber */}
             <div className="flex items-center px-4 h-12 border-b border-[#333333]">
               <div className="text-sm font-mono">
@@ -233,7 +285,10 @@ export default function EditorPage() {
             </div>
 
             {/* Video track: show video clips */}
-            <div className="h-20 mx-4 mt-1 bg-[#0c4a6e] border-2 border-orange-500 overflow-hidden">
+            <div 
+              className="mx-4 mt-1 bg-[#0c4a6e] border-2 border-orange-500 overflow-hidden relative" 
+              style={{ height: `${videoTrackHeight}px` }}
+            >
               <div className="flex h-full relative">
                 {clips.filter(c => c.type === "video").map((clip, idx) => (
                   <div key={clip.id} className="h-full w-full relative flex items-center justify-center border-r border-blue-700">
@@ -245,14 +300,25 @@ export default function EditorPage() {
                   style={{ left: `${(currentTime / duration) * 100}%` }}
                 ></div>
               </div>
+              
+              {/* Resize handle for video track */}
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-2 bg-[#333333] hover:bg-blue-500 cursor-ns-resize flex items-center justify-center"
+                onMouseDown={handleVideoResizeStart}
+              >
+                <div className="w-16 h-1 bg-gray-400 rounded-full"></div>
+              </div>
             </div>
 
             {/* Audio track: show audio clips and play audio in sync */}
             {clips.some(c => c.type === "audio") && (
-              <div className="h-12 mx-4 mt-1 bg-[#232323] relative">
+              <div 
+                className="mx-4 mt-1 bg-[#232323] relative" 
+                style={{ height: `${audioTrackHeight}px` }}
+              >
                 <div className="absolute left-0 top-0 text-xs text-green-400 px-1 z-10">🎵 Audio Clip</div>
                 <div className="absolute inset-0 flex items-center">
-                  <div className="h-8 w-full bg-[#232323] overflow-hidden">
+                  <div className="w-full h-full bg-[#232323] overflow-hidden flex items-center">
                     {/* Optionally, show a waveform for each audio clip */}
                     <Waveform progress={progress} />
                   </div>
@@ -266,6 +332,14 @@ export default function EditorPage() {
                     style={{ display: 'none' }}
                   />
                 ))}
+                
+                {/* Resize handle for audio track */}
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-2 bg-[#333333] hover:bg-blue-500 cursor-ns-resize flex items-center justify-center"
+                  onMouseDown={handleAudioResizeStart}
+                >
+                  <div className="w-16 h-1 bg-gray-400 rounded-full"></div>
+                </div>
               </div>
             )}
           </div>
@@ -289,9 +363,10 @@ export default function EditorPage() {
             <Trash2 size={20} />
           </button>
           <button
-            className={`p-2 hover:bg-[#333333] rounded ${isSfxPanelOpen ? "bg-[#333333]" : ""}`}
+            className={`p-2 hover:bg-[#333333] rounded ${isSfxPanelOpen ? "bg-[#333333]" : ""} relative overflow-hidden group`}
             onClick={toggleSfxPanel}
           >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-sweep" />
             <Image src="/images/circular-icon.png" alt="Generate SFX" width={32} height={32} />
           </button>
           <div className="flex-1"></div>
@@ -307,7 +382,7 @@ export default function EditorPage() {
       {/* SFX Generation Panel */}
       {isSfxPanelOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div ref={panelRef} className="bg-[#1a1a1a] rounded-lg w-full max-w-lg mx-4">
+          <div ref={panelRef} className="bg-[#1a1a1a] rounded-lg w-full max-w-lg mx-4 shadow-xl">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-medium">Generate SFX</h2>
@@ -319,8 +394,8 @@ export default function EditorPage() {
               <div className="mb-6">
                 <label className="block text-lg mb-2">Prompt</label>
                 <textarea
-                  className="w-full bg-[#121212] border border-[#333333] rounded-md p-4 text-white h-32 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Describe the sound effect you want to generate here"
+                  className="w-full bg-[#121212] border border-[#333333] rounded-md p-4 text-white/70 focus:text-white h-32 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-white/70"
+                  placeholder="What do you hear?"
                   value={sfxPrompt}
                   onChange={(e) => setSfxPrompt(e.target.value)}
                 />
@@ -350,13 +425,7 @@ export default function EditorPage() {
                 </button>
               </div>
 
-              <div className="flex justify-end space-x-4">
-                <button
-                  className="bg-[#1e1e1e] border border-[#333333] rounded-full py-2 px-8 hover:bg-[#2a2a2a]"
-                  onClick={() => setIsSfxPanelOpen(false)}
-                >
-                  Cancel
-                </button>
+              <div className="flex justify-end">
                 <button
                   className="bg-blue-600 rounded-full py-2 px-8 hover:bg-blue-700"
                   onClick={handleGenerate}
