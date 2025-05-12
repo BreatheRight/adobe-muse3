@@ -3,7 +3,7 @@
 import type React from "react"
 import { useEffect, useState, useRef } from "react";
 // Video asset is referenced via public URL for best compatibility.
-const defaultVideo = "/video/demo1_no_audio.mp4";
+const defaultVideo = "/video/demo2_no_audio.mp4";
 import { useTimelineStore, TimelineState } from "../lib/useTimelineStore";
 import {
   Play,
@@ -45,7 +45,7 @@ export default function EditorPage() {
       addClip({
         id: "demo_video",
         type: "video",
-        src: "/video/demo1_no_audio.mp4",
+        src: "/video/demo2_no_audio.mp4",
         start: 0,
       });
     }
@@ -54,7 +54,7 @@ export default function EditorPage() {
   }, [clips, addClip]);
 
   const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(8) // in seconds
+  const [currentTime, setCurrentTime] = useState(0) // in seconds
   const [duration, setDuration] = useState(86) // 01:26 in seconds
   const timelineRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -98,7 +98,7 @@ export default function EditorPage() {
     addClip({
       id: `gen_audio_${Date.now()}`,
       type: "audio",
-      src: "/audio/demo1.mp3",
+      src: "/audio/demo2.mp3",
       start: 0
     });
     setIsGenerating(false);
@@ -149,13 +149,13 @@ export default function EditorPage() {
       <div className="flex flex-1">
         {/* Main video area */}
         <div className="flex-1 flex flex-col">
-          <div className="flex-1 relative">
+          <div className="flex-1 relative flex items-center justify-center">
             {clips.length > 0 && clips[0].type === "video" ? (
   <video
     ref={videoRef}
     src={clips[0].src}
     controls
-    className="object-contain w-full h-full"
+    className="object-contain w-full max-h-[70vh]"
     style={{ background: '#000' }}
     autoPlay={isPlaying}
     onPlay={() => setIsPlaying(true)}
@@ -233,18 +233,11 @@ export default function EditorPage() {
             </div>
 
             {/* Video track: show video clips */}
-            <div className="h-20 mx-4 mt-1 bg-[#333333] border-2 border-orange-500 overflow-hidden">
+            <div className="h-20 mx-4 mt-1 bg-[#0c4a6e] border-2 border-orange-500 overflow-hidden">
               <div className="flex h-full relative">
                 {clips.filter(c => c.type === "video").map((clip, idx) => (
-                  <div key={clip.id} className="h-full w-1/8 relative">
-                    {/* Replace with video thumbnails if available */}
-                    <Image
-                      src={"/images/thumb-1.jpg"}
-                      alt={`Video Clip ${idx + 1}`}
-                      width={100}
-                      height={80}
-                      className="h-full w-full object-cover"
-                    />
+                  <div key={clip.id} className="h-full w-full relative flex items-center justify-center border-r border-blue-700">
+                    <span className="text-sm font-medium text-white px-2">Muse Demo Reel</span>
                   </div>
                 ))}
                 <div
@@ -299,7 +292,7 @@ export default function EditorPage() {
             className={`p-2 hover:bg-[#333333] rounded ${isSfxPanelOpen ? "bg-[#333333]" : ""}`}
             onClick={toggleSfxPanel}
           >
-            <Image src="/images/circular-icon.png" alt="Generate SFX" width={20} height={20} />
+            <Image src="/images/circular-icon.png" alt="Generate SFX" width={32} height={32} />
           </button>
           <div className="flex-1"></div>
           <button className="p-2 hover:bg-[#333333] rounded">
