@@ -9,8 +9,31 @@ interface WaveformProps {
 
 export function Waveform({ progress, className = "" }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    const resizeCanvas = () => {
+      const canvas = canvasRef.current
+      const container = containerRef.current
+      if (!canvas || !container) return
+      
+      // Make canvas fill its container
+      canvas.width = container.clientWidth || 1000
+      canvas.height = container.clientHeight || 50
+      
+      // Redraw on resize
+      drawWaveform()
+    }
+    
+    // Initial size
+    resizeCanvas()
+    
+    // Handle resize
+    window.addEventListener('resize', resizeCanvas)
+    return () => window.removeEventListener('resize', resizeCanvas)
+  }, [])
+
+  const drawWaveform = () => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -46,7 +69,15 @@ export function Waveform({ progress, className = "" }: WaveformProps) {
     const progressX = width * progress
     ctx.fillStyle = "#3b82f6" // Blue color
     ctx.fillRect(progressX - 1, 0, 2, height)
+  }
+
+  useEffect(() => {
+    drawWaveform()
   }, [progress])
 
-  return <canvas ref={canvasRef} width={1000} height={50} className={`w-full h-full ${className}`} />
+  return (
+    <div ref={containerRef} className={`w-full h-full ${className}`}>
+      <canvas ref={canvasRef} className="w-full h-full" />
+    </div>
+  )
 }

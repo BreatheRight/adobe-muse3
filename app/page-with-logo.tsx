@@ -34,7 +34,7 @@ export default function AdobeMuse() {
           <div className="lg:col-span-8">
             <div className="rounded-lg overflow-hidden h-full">
               <Image
-                src="/images/hero.png"
+                src="/images/TopRightHero.png"
                 alt="Purple microphone with acoustic foam background"
                 width={800}
                 height={450}

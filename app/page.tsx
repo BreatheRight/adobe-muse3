@@ -11,7 +11,8 @@ export default function AdobeMuse() {
           <div className="lg:col-span-4">
             <div className="bg-[#1e1e1e] rounded-lg p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="bg-[#6366f1] w-12 h-12 rounded-xl flex items-center justify-center p-0 overflow-hidden">
+                <div className="bg-[#6366f1] w-12 h-12 rounded-xl flex items-center justify-center p-0 overflow-hidden relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-sweep" />
                   <Image src="/images/lilmuse.png" alt="Adobe Muse icon" width={48} height={48} className="w-12 h-12" />
                 </div>
                 <h1 className="text-2xl font-medium">Adobe Muse</h1>
