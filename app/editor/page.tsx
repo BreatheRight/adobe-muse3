@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Mail,
+  Folder,
   Scissors,
   RefreshCw,
   RotateCw,
@@ -26,9 +26,12 @@ import {
   Upload,
   AlignJustify,
   X,
+  File,
+  Sparkles,
 } from "lucide-react"
 import Image from "next/image"
 import { Waveform } from "@/components/waveform"
+import Link from "next/link"
 
 
 
@@ -68,6 +71,7 @@ export default function EditorPage() {
   const [isResizingAudio, setIsResizingAudio] = useState(false);
   const [startY, setStartY] = useState(0);
   const [startHeight, setStartHeight] = useState(0);
+  const [isProjectsPanelOpen, setIsProjectsPanelOpen] = useState(false);
 
   // Sync video/audio currentTime when state changes
   useEffect(() => {
@@ -195,10 +199,22 @@ export default function EditorPage() {
     };
   }, [isResizingVideo, isResizingAudio, startY, startHeight]);
 
+  const toggleProjectsPanel = () => {
+    setIsProjectsPanelOpen(!isProjectsPanelOpen);
+  };
+  
+  // Recent projects data
+  const recentProjects = [
+    { name: "Brand Identity_NIKE_v1.0.prproj", date: "2 days ago" },
+    { name: "Eternal Sunshine Short Film.prproj", date: "1 week ago" },
+    { name: "RuslanTOPSECRET.prproj", date: "2 weeks ago" },
+    { name: "Musings.prproj", date: "1 month ago" }
+  ];
+
   return (
     <div className="flex flex-col h-screen bg-[#1a1a1a] text-white">
       {/* Main content area */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 relative">
         {/* Main video area */}
         <div className="flex-1 flex flex-col">
           <div className="flex-1 relative flex items-center justify-center">
@@ -346,12 +362,17 @@ export default function EditorPage() {
         </div>
 
         {/* Right toolbar */}
-        <div className="w-12 bg-[#232323] flex flex-col items-center py-2 space-y-4">
+        <div className="w-12 bg-[#232323] flex flex-col items-center py-2 space-y-4 z-20 relative">
           <button className="p-2 hover:bg-[#333333] rounded">
             <Plus size={20} />
           </button>
-          <button className="p-2 hover:bg-[#333333] rounded">
-            <Mail size={20} />
+          <button 
+            className={`p-2 hover:bg-[#333333] rounded ${isProjectsPanelOpen ? "bg-[#333333]" : ""} relative overflow-hidden group`}
+            onClick={toggleProjectsPanel}
+            id="folder-icon"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-sweep" />
+            <Folder size={20} />
           </button>
           <button className="p-2 hover:bg-[#333333] rounded">
             <Scissors size={20} />
@@ -359,8 +380,8 @@ export default function EditorPage() {
           <button className="p-2 hover:bg-[#333333] rounded">
             <RefreshCw size={20} />
           </button>
-          <button className="p-2 hover:bg-[#333333] rounded">
-            <Trash2 size={20} />
+          <button className="p-2 hover:bg-[#333333] rounded" id="trash-icon">
+            <Layout size={20} />
           </button>
           <button
             className={`p-2 hover:bg-[#333333] rounded ${isSfxPanelOpen ? "bg-[#333333]" : ""} relative overflow-hidden group`}
@@ -376,6 +397,51 @@ export default function EditorPage() {
           <button className="p-2 hover:bg-[#333333] rounded">
             <ListVideo size={20} />
           </button>
+        </div>
+        
+        {/* Recent Projects Sliding Panel */}
+        <div 
+          className={`fixed bg-[#1e1e1e] border-l border-[#333333] shadow-lg transition-transform duration-300 ease-in-out z-10
+            ${isProjectsPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}
+          style={{
+            width: '16rem',
+            right: '3rem',
+            top: '3.7rem', // aligns with folder icon
+            height: '18.5rem', // matches screenshot height (about 216px)
+            borderRadius: '0.75rem',
+            overflow: 'hidden',
+          }}
+        >
+          <div className="p-4 border-b border-[#333333]">
+            <h3 className="text-lg font-medium">Recent Projects</h3>
+          </div>
+          
+          <div className="overflow-y-auto py-2">
+            {recentProjects.map((project, index) => (
+              project.name === "Musings.prproj" ? (
+                <Link href="/editor/musings" key={index} legacyBehavior>
+                  <a className="px-4 py-3 hover:bg-[#2a2a2a] cursor-pointer flex items-start">
+                    <File size={16} className="mr-2 mt-1 text-blue-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-white leading-tight">{project.name}</p>
+                      <p className="text-xs text-gray-400">{project.date}</p>
+                    </div>
+                  </a>
+                </Link>
+              ) : (
+                <div 
+                  key={index} 
+                  className="px-4 py-3 hover:bg-[#2a2a2a] cursor-pointer flex items-start"
+                >
+                  <File size={16} className="mr-2 mt-1 text-blue-400 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs text-white leading-tight">{project.name}</p>
+                    <p className="text-xs text-gray-400">{project.date}</p>
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
         </div>
       </div>
 
@@ -425,7 +491,13 @@ export default function EditorPage() {
                 </button>
               </div>
 
-              <div className="flex justify-end">
+              <div className="flex justify-end items-center gap-2">
+                <button
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#232323] hover:bg-[#333] border border-[#333333] transition-colors"
+                  title="Magic"
+                >
+                  <Sparkles size={16} className="text-yellow-300" />
+                </button>
                 <button
                   className="bg-blue-600 rounded-full py-2 px-8 hover:bg-blue-700"
                   onClick={handleGenerate}
